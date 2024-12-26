@@ -6,7 +6,6 @@
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-xl font-semibold">客户列表</h2>
   </div>
-
   <table class="min-w-full border text-gray-600">
     <thead class="bg-gray-50 border-b">
       <tr>
@@ -16,7 +15,7 @@
         <th class="py-2 px-3">余额</th>
         <th class="py-2 px-3">信用等级</th>
         <th class="py-2 px-3">累计消费</th>
-        <th class="py-2 px-3">操作</th> <!-- 新增这一列 -->
+        <th class="py-2 px-3">操作</th>
       </tr>
     </thead>
     <tbody>
@@ -28,11 +27,15 @@
         <td class="py-2 px-3">{{ c.account_balance }}</td>
         <td class="py-2 px-3">{{ c.credit_level }}</td>
         <td class="py-2 px-3">{{ c.cumulative_amount }}</td>
-        <td class="py-2 px-3">
-          <!-- 这里放编辑链接, 跳转到 /customers/<customer_id>/edit/ -->
+        <td class="py-2 px-3 space-x-2 text-center">
+          <!-- 编辑按钮 -->
           <a href="{% url 'customer_edit' c.customer_id %}"
-             class="text-indigo-600 hover:text-indigo-800">
-             编辑
+             class="text-indigo-600 hover:text-indigo-800">编辑</a>
+          <!-- 删除按钮 -->
+          <a href="{% url 'customer_delete' c.customer_id %}"
+             class="text-red-600 hover:text-red-800"
+             onclick="return confirm('确认删除此用户吗？');">
+             删除
           </a>
         </td>
       </tr>

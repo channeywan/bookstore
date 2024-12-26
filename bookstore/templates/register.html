@@ -1,11 +1,27 @@
-<!-- bookstore/templates/register.html -->
 {% extends 'base.html' %}
-{% block title %}注册{% endblock %}
+{% load crispy_forms_tags %}
+{% block title %}用户注册{% endblock %}
+
 {% block content %}
-<h2>注册新用户</h2>
-<form method="POST">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">注册</button>
-</form>
+<div class="bg-white p-6 shadow rounded max-w-xl mx-auto">
+  <h2 class="text-xl font-semibold mb-4">注册新用户</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <!-- 使用crispy-forms渲染 RegisterForm -->
+    {{ form|crispy }}
+
+    <button type="submit"
+      class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 mt-4">
+      注册
+    </button>
+  </form>
+
+  <!-- 如果想加“已有账号？去登录”提示 -->
+  <div class="mt-4 text-sm text-gray-600">
+    已有账号？
+    <a href="{% url 'login' %}" class="text-indigo-600 hover:text-indigo-800">
+      点此登录
+    </a>
+  </div>
+</div>
 {% endblock %}

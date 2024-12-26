@@ -246,6 +246,34 @@ def customer_edit(request, pk):
 
     return render(request, 'customers/customer_edit.html', {'form': form, 'customer_id': pk})
 
+
+@login_required
+def customer_delete(request, pk):
+    """
+    仅管理员可删除用户，并同步删除对应的 Django User
+    """
+    if not request.user.is_staff:
+        return HttpResponse("无权限访问该页面，仅管理员可操作。", status=403)
+
+    # 1. 获取要删除的 Customers 对象
+    customer_obj = get_object_or_404(Customers, pk=pk)
+
+    # 2. 根据 Customers.name(与 User.username 对应) 去找 Django User
+    try:
+        user_obj = User.objects.get(username=customer_obj.name)
+        # 3. 先删除 Django User
+        user_obj.delete()
+    except User.DoesNotExist:
+        # 如果没有对应的 Django User，也可忽略或提示
+        pass
+
+    # 4. 删除 Customers 记录
+    customer_obj.delete()
+
+    return redirect('customer_list')
+
+
+
 @login_required
 def profile_update(request):
     """

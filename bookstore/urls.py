@@ -4,7 +4,7 @@ from .views import (
     register_view,login_view,logout_view,
     backorder_list, backorder_create,
     purchase_list, purchase_create, purchase_arrival,
-    customer_list, customer_edit,profile_update,
+    customer_list, customer_edit,profile_update,customer_delete,
     order_list, order_create, order_pay
 )
 
@@ -32,6 +32,7 @@ urlpatterns = [
     path('customers/', customer_list, name='customer_list'),
     path('customers/<int:pk>/edit/', customer_edit, name='customer_edit'),
     path('profile/update/', profile_update, name='profile_update'),
+    path('customers/<int:pk>/delete/', customer_delete, name='customer_delete'),
     # 订单
     path('orders/', order_list, name='order_list'),
     path('orders/new/', order_create, name='order_create'),
