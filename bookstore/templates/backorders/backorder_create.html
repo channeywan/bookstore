@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}注册新客户{% endblock %}
+{% block content %}
+<div class="bg-white p-6 shadow rounded max-w-xl">
+  <h2 class="text-xl font-semibold mb-4">注册新客户</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">姓名</label>
+      <input type="text" name="name" class="border-gray-300 rounded w-full" required>
+    </div>
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">密码</label>
+      <input type="password" name="password" class="border-gray-300 rounded w-full" required>
+    </div>
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">地址</label>
+      <input type="text" name="address" class="border-gray-300 rounded w-full">
+    </div>
+    <button type="submit"
+      class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+      提交
+    </button>
+  </form>
+</div>
+{% endblock %}

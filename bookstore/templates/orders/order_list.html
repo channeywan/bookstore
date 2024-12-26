@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}订单列表{% endblock %}
+{% block content %}
+<div class="bg-white p-6 shadow rounded">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-semibold">订单列表</h2>
+    <a href="{% url 'order_create' %}"
+       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+       创建订单
+    </a>
+  </div>
+  <table class="min-w-full border text-gray-600">
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        <th class="py-2 px-3">订单ID</th>
+        <th class="py-2 px-3">客户</th>
+        <th class="py-2 px-3">日期</th>
+        <th class="py-2 px-3">总金额</th>
+        <th class="py-2 px-3">发货地址</th>
+        <th class="py-2 px-3">状态</th>
+        <th class="py-2 px-3">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+      <tr class="border-b">
+        <td class="py-2 px-3">{{ o.order_id }}</td>
+        <td class="py-2 px-3">
+          {% if o.customer_id %}{{ o.customer_id.name }}{% endif %}
+        </td>
+        <td class="py-2 px-3">{{ o.order_date }}</td>
+        <td class="py-2 px-3">{{ o.total_amount }}</td>
+        <td class="py-2 px-3">{{ o.shipping_address }}</td>
+        <td class="py-2 px-3">{{ o.order_status }}</td>
+        <td class="py-2 px-3">
+          {% if o.order_status != 'payed' %}
+          <a href="{% url 'order_pay' o.order_id %}"
+             class="text-indigo-600 hover:text-indigo-800">
+             支付
+          </a>
+          {% else %}
+          已支付
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

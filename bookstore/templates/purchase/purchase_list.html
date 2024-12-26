@@ -1,0 +1,39 @@
+<!-- bookstore/templates/purchase/purchase_list.html -->
+{% extends 'base.html' %}
+{% block title %}采购单列表{% endblock %}
+{% block content %}
+<div class="bg-white p-6 shadow rounded">
+  <h2 class="text-xl font-semibold mb-4">采购单列表</h2>
+  <table class="min-w-full border text-gray-600">
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        <th class="py-2 px-3">ID</th>
+        <th class="py-2 px-3">缺书记录ID</th>
+        <th class="py-2 px-3">下单日期</th>
+        <th class="py-2 px-3">状态</th>
+        <th class="py-2 px-3">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in purchases %}
+      <tr class="border-b">
+        <td class="py-2 px-3">{{ p.purchase_order_id }}</td>
+        <td class="py-2 px-3">{{ p.backorder_id_id }}</td>
+        <td class="py-2 px-3">{{ p.order_date }}</td>
+        <td class="py-2 px-3">{{ p.status }}</td>
+        <td class="py-2 px-3">
+          {% if p.status != 'Arrival' %}
+          <a href="{% url 'purchase_arrival' p.purchase_order_id %}"
+             class="text-indigo-600 hover:text-indigo-800">
+             标记到货
+          </a>
+          {% else %}
+          已到货
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}创建订单{% endblock %}
+{% block content %}
+<div class="bg-white p-6 shadow rounded max-w-xl">
+  <h2 class="text-xl font-semibold mb-4">创建订单</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">选择客户</label>
+      <select name="customer_id" class="border-gray-300 rounded w-full">
+        {% for c in customers %}
+        <option value="{{ c.customer_id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">发货地址</label>
+      <input type="text" name="shipping_address" class="border-gray-300 rounded w-full" required>
+    </div>
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">选择图书</label>
+      <select name="book_id" class="border-gray-300 rounded w-full">
+        {% for b in books %}
+        <option value="{{ b.book_id }}">{{ b.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">数量</label>
+      <input type="number" name="quantity" value="1" class="border-gray-300 rounded w-full">
+    </div>
+    <button type="submit"
+      class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+      提交订单
+    </button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+<!-- bookstore/templates/customers/customer_list.html -->
+{% extends 'base.html' %}
+{% block title %}客户列表{% endblock %}
+
+{% block content %}
+<h2>客户列表</h2>
+<a href="{% url 'customer_create' %}">新增客户</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>客户ID</th>
+            <th>姓名</th>
+            <th>地址</th>
+            <th>余额</th>
+            <th>信用等级</th>
+            <th>累计消费</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for c in customers %}
+        <tr>
+            <td>{{ c.customer_id }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.address|default_if_none:"-" }}</td>
+            <td>{{ c.account_balance }}</td>
+            <td>{{ c.credit_level }}</td>
+            <td>{{ c.cumulative_amount }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}书目列表{% endblock %}
+{% block content %}
+<div class="bg-white p-6 shadow rounded">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-semibold">书目列表</h2>
+    <a href="{% url 'book_create' %}"
+       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+      添加新书
+    </a>
+  </div>
+  <table class="min-w-full border text-gray-600">
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        <th class="py-2 px-3 text-left">书号</th>
+        <th class="py-2 px-3 text-left">书名</th>
+        <th class="py-2 px-3 text-left">作者</th>
+        <th class="py-2 px-3 text-left">出版社</th>
+        <th class="py-2 px-3 text-left">库存</th>
+        <th class="py-2 px-3">操作</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      {% for b in books %}
+      <tr>
+        <td class="py-2 px-3">{{ b.book_id }}</td>
+        <td class="py-2 px-3">{{ b.title }}</td>
+        <td class="py-2 px-3">
+          {{ b.author1st }}
+          {% if b.author2nd %}/{{ b.author2nd }}{% endif %}
+          {% if b.author3rd %}/{{ b.author3rd }}{% endif %}
+        </td>
+        <td class="py-2 px-3">{{ b.publisher }}</td>
+        <td class="py-2 px-3">{{ b.stock_quantity }}</td>
+        <td class="py-2 px-3 text-center">
+          <a href="{% url 'book_edit' b.book_id %}"
+             class="text-indigo-600 hover:text-indigo-800">编辑</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

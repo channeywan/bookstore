@@ -1,0 +1,35 @@
+<!-- bookstore/templates/base.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <title>{% block title %}Django Bookstore{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/dist.css' %}">
+</head>
+<body class="min-h-screen bg-gray-100">
+  <nav class="bg-white shadow mb-6">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-indigo-600">书店管理系统</h1>
+      <div class="space-x-4">
+        <a href="{% url 'index' %}" class="text-gray-700 hover:text-indigo-600">首页</a>
+        <a href="{% url 'book_list' %}" class="text-gray-700 hover:text-indigo-600">书目管理</a>
+        <a href="{% url 'backorder_list' %}" class="text-gray-700 hover:text-indigo-600">缺书登记</a>
+        <a href="{% url 'purchase_list' %}" class="text-gray-700 hover:text-indigo-600">采购单</a>
+        <a href="{% url 'order_list' %}" class="text-gray-700 hover:text-indigo-600">订单管理</a>
+        <a href="{% url 'customer_list' %}" class="text-gray-700 hover:text-indigo-600">客户管理</a>
+        <a href="{% url 'admin:index' %}" class="text-gray-700 hover:text-indigo-600">后台</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="mt-8 py-6 text-center text-sm text-gray-400">
+    <hr class="mb-4"/>
+    <p>© 2024 书店管理系统</p>
+  </footer>
+</body>
+</html>
