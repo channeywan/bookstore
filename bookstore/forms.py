@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Books
+from .models import Books,Customers
 
 class BookForm(forms.ModelForm):
     class Meta:
@@ -11,7 +11,17 @@ class BookForm(forms.ModelForm):
             'author1st', 'author2nd', 'author3rd',
         ]
         # 如果 BookID 是自增，或者你不想手动输入，可改为 exclude=['book_id']
-
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customers
+        # 你想允许编辑哪些字段，就写进来
+        fields = [
+            'name',
+            'address',
+            'account_balance',
+            'credit_level',
+            'cumulative_amount'
+        ]
 class RegisterForm(forms.ModelForm):
     """
     用户注册表单:

@@ -1,22 +1,57 @@
-<!-- bookstore/templates/index.html -->
 {% extends 'base.html' %}
-{% block title %}首页{% endblock %}
+{% block title %}书店首页{% endblock %}
 
 {% block content %}
-<div class="bg-white p-6 shadow rounded">
-  <h2 class="text-2xl font-semibold mb-4">欢迎来到书店系统</h2>
-  <p class="text-gray-700">
-    在这里你可以进行书目和库存管理、缺书登记与采购单管理、客户与订单管理等操作。
+<div style="max-width: 700px; margin: 40px auto; padding: 20px;">
+  <h2 style="font-size: 2em; text-align: center; margin-bottom: 20px; color: #333;">欢迎来到书店管理系统</h2>
+  <p style="font-size: 1.1em; color: #555; line-height: 1.6;">
+    在这里，你可以浏览丰富的书目信息，了解库存情况，进行缺书登记，还可以查看你的个人订单。
   </p>
-  <p class="text-gray-700 mt-4">
-    请使用顶部导航栏选择相应功能模块。
-  </p>
-  <p>
-    {% if user.is_authenticated %}
-      您好, {{ user.username }}!
-    {% else %}
-      您尚未登录
+
+  {% if user.is_authenticated %}
+  <div style="margin-top: 20px; background: #f9f9f9; padding: 15px; border-radius: 4px;">
+    <p style="margin: 0; color: #333;">您好，<strong>{{ user.username }}</strong>！</p>
+    <p style="margin: 0; color: #777;">祝您购物/管理愉快～</p>
+  </div>
+  {% else %}
+  <div style="margin-top: 20px; text-align: center;">
+    <a href="{% url 'login' %}" style="display: inline-block; padding: 10px 20px; background: #4CAF50; color: #fff; border-radius: 4px; text-decoration: none; margin-right: 10px;">登录</a>
+    <a href="{% url 'register' %}" style="display: inline-block; padding: 10px 20px; background: #f60; color: #fff; border-radius: 4px; text-decoration: none;">注册</a>
+  </div>
+  {% endif %}
+
+  <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
+
+  <section style="display: flex; flex-wrap: wrap; gap: 15px;">
+    <!-- 这里可放一些“模块入口”链接，类似卡片布局 -->
+    <div style="flex: 1 1 200px; min-width: 200px; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 10px; text-align: center;">
+      <h3 style="font-size: 1.2em; margin-bottom: 10px;">书籍浏览</h3>
+      <p style="font-size: 0.9em; color: #666;">查看并搜索全部书目信息</p>
+      <a href="{% url 'book_list' %}" style="display: inline-block; margin-top: 10px; padding: 6px 12px; background: #3498db; color: #fff; border-radius: 3px; text-decoration: none;">进入</a>
+    </div>
+
+    {% if user.is_authenticated and not user.is_staff %}
+    <div style="flex: 1 1 200px; min-width: 200px; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 10px; text-align: center;">
+      <h3 style="font-size: 1.2em; margin-bottom: 10px;">缺书登记</h3>
+      <p style="font-size: 0.9em; color: #666;">快速登记缺货、订货需求</p>
+      <a href="{% url 'backorder_list' %}" style="display: inline-block; margin-top: 10px; padding: 6px 12px; background: #3498db; color: #fff; border-radius: 3px; text-decoration: none;">进入</a>
+    </div>
+
+
+    <div style="flex: 1 1 200px; min-width: 200px; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 10px; text-align: center;">
+      <h3 style="font-size: 1.2em; margin-bottom: 10px;">我的订单</h3>
+      <p style="font-size: 0.9em; color: #666;">查看并管理个人订单</p>
+      <a href="{% url 'order_list' %}" style="display: inline-block; margin-top: 10px; padding: 6px 12px; background: #3498db; color: #fff; border-radius: 3px; text-decoration: none;">进入</a>
+    </div>
     {% endif %}
-  </p>
+
+    {% if user.is_authenticated and user.is_staff %}
+    <div style="flex: 1 1 200px; min-width: 200px; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 10px; text-align: center;">
+      <h3 style="font-size: 1.2em; margin-bottom: 10px;">管理员后台</h3>
+      <p style="font-size: 0.9em; color: #666;">客户管理、采购单管理等</p>
+      <a href="{% url 'admin:index' %}" style="display: inline-block; margin-top: 10px; padding: 6px 12px; background: #e67e22; color: #fff; border-radius: 3px; text-decoration: none;">进入</a>
+    </div>
+    {% endif %}
+  </section>
 </div>
 {% endblock %}
