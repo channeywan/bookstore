@@ -22,7 +22,8 @@ class Books(models.Model):
 
 
 class Series(models.Model):
-    book_id = models.ForeignKey(Books, models.DO_NOTHING, db_column='BookID', primary_key=True)
+    id = models.AutoField(primary_key=True)  # Django 主键
+    book_id = models.ForeignKey(Books, models.DO_NOTHING, db_column='BookID')
     series_id = models.SmallIntegerField(db_column='SeriesID')
 
     class Meta:

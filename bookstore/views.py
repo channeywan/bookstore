@@ -1,14 +1,64 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import User
 from datetime import date
 from .models import Books, Suppliers, Backorders, Purchaseorders
-from .forms import BookForm
+from .forms import BookForm,RegisterForm
 
 def index(request):
     """
-    主页示例
+    网站首页
     """
     return render(request, 'index.html')
+def register_view(request):
+    """注册新用户: 同时在Django User和Customers表里做记录"""
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            # 1) 创建Django User
+            user = form.save(commit=False)
+            password = form.cleaned_data['password']
+            user.set_password(password)  # 加密存储
+            user.save()
+
+            # 2) 在Customers表中写一条记录, name=User.username
+            #    address等字段可选(看你是否想在注册时填写)
+            #    password列只是数据库结构, 可以存个随机或空串
+            #    这里示例简单地把hash后的密码也写进去, 或者 "xxxx".
+            Customers.objects.create(
+                name=user.username,
+                password=user.password,  # 仅占位, 不会真实用于登录
+                address='',
+            )
+            # 3) 自动登录(可选)
+            user = authenticate(username=user.username, password=password)
+            if user is not None:
+                login(request, user)
+            return redirect('index')
+    else:
+        form = RegisterForm()
+    return render(request, 'register.html', {'form': form})
+
+def login_view(request):
+    """自定义登录(也可改用Django内置LoginView)"""
+    if request.method == 'POST':
+        form = AuthenticationForm(request=request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()  # 取到验证通过的User
+            login(request, user)
+            return redirect('index')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+
+def logout_view(request):
+    """注销"""
+    logout(request)
+    return redirect('login')
 
 def book_list(request):
     """
@@ -133,12 +183,22 @@ def customer_create(request):
     return render(request, 'customers/customer_create.html')
 from .models import Orders, Orderdetails
 
+@login_required
 def order_list(request):
     """
     列出所有订单
     """
-    orders = Orders.objects.all()
+    username = request.user.username
+    # 1) 找到对应的 Customers 记录(以 name字段 匹配 user.username)
+    try:
+        cust = Customers.objects.get(name=username)
+    except Customers.DoesNotExist:
+        # 如果没找到, 说明可能还没在Customers里建记录
+        # 或是手动删除了, 这里返回空
+        return render(request, 'orders/my_orders.html', {'orders': []})
+    orders = Orders.objects.filter(customer_id=cust)
     return render(request, 'orders/order_list.html', {'orders': orders})
+
 
 def order_create(request):
     """

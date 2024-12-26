@@ -4,12 +4,19 @@
 
 {% block content %}
 <div class="bg-white p-6 shadow rounded">
-  <h2 class="text-2xl font-semibold mb-4">欢迎来到书店管理系统</h2>
+  <h2 class="text-2xl font-semibold mb-4">欢迎来到书店系统</h2>
   <p class="text-gray-700">
     在这里你可以进行书目和库存管理、缺书登记与采购单管理、客户与订单管理等操作。
   </p>
   <p class="text-gray-700 mt-4">
     请使用顶部导航栏选择相应功能模块。
+  </p>
+  <p>
+    {% if user.is_authenticated %}
+      您好, {{ user.username }}!
+    {% else %}
+      您尚未登录
+    {% endif %}
   </p>
 </div>
 {% endblock %}

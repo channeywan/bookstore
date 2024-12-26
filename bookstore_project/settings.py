@@ -52,6 +52,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+LOGIN_URL = '/login/'         # 未登录时重定向到的登录URL
+LOGIN_REDIRECT_URL = '/'      # 登录成功后默认跳转到主页
+LOGOUT_REDIRECT_URL = '/login/'  # 注销后跳转
 CRISPY_ALLOWED_TEMPLATE_PACKS = ("tailwind",)
 CRISPY_TEMPLATE_PACK = "tailwind"
 ROOT_URLCONF = "bookstore_project.urls"

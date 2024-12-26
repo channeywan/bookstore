@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     index, book_list, book_create, book_edit,
+    register_view,login_view,logout_view,
     backorder_list, backorder_create,
     purchase_list, purchase_create, purchase_arrival,
     customer_list, customer_create,
@@ -14,7 +15,10 @@ urlpatterns = [
     path('books/', book_list, name='book_list'),
     path('books/new/', book_create, name='book_create'),
     path('books/<int:pk>/edit/', book_edit, name='book_edit'),
-
+    # 登录
+    path('register/', register_view, name='register'),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
     # 缺书登记
     path('backorders/', backorder_list, name='backorder_list'),
     path('backorders/new/', backorder_create, name='backorder_create'),

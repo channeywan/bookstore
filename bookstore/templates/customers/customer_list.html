@@ -1,33 +1,37 @@
-<!-- bookstore/templates/customers/customer_list.html -->
 {% extends 'base.html' %}
 {% block title %}客户列表{% endblock %}
-
 {% block content %}
-<h2>客户列表</h2>
-<a href="{% url 'customer_create' %}">新增客户</a>
-
-<table>
-    <thead>
-        <tr>
-            <th>客户ID</th>
-            <th>姓名</th>
-            <th>地址</th>
-            <th>余额</th>
-            <th>信用等级</th>
-            <th>累计消费</th>
-        </tr>
+<div class="bg-white p-6 shadow rounded">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-semibold">客户列表</h2>
+    <a href="{% url 'customer_create' %}"
+       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+       新增客户
+    </a>
+  </div>
+  <table class="min-w-full border text-gray-600">
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        <th class="py-2 px-3">ID</th>
+        <th class="py-2 px-3">姓名</th>
+        <th class="py-2 px-3">地址</th>
+        <th class="py-2 px-3">余额</th>
+        <th class="py-2 px-3">信用等级</th>
+        <th class="py-2 px-3">累计消费</th>
+      </tr>
     </thead>
     <tbody>
-    {% for c in customers %}
-        <tr>
-            <td>{{ c.customer_id }}</td>
-            <td>{{ c.name }}</td>
-            <td>{{ c.address|default_if_none:"-" }}</td>
-            <td>{{ c.account_balance }}</td>
-            <td>{{ c.credit_level }}</td>
-            <td>{{ c.cumulative_amount }}</td>
-        </tr>
-    {% endfor %}
+      {% for c in customers %}
+      <tr class="border-b">
+        <td class="py-2 px-3">{{ c.customer_id }}</td>
+        <td class="py-2 px-3">{{ c.name }}</td>
+        <td class="py-2 px-3">{{ c.address|default_if_none:"-" }}</td>
+        <td class="py-2 px-3">{{ c.account_balance }}</td>
+        <td class="py-2 px-3">{{ c.credit_level }}</td>
+        <td class="py-2 px-3">{{ c.cumulative_amount }}</td>
+      </tr>
+      {% endfor %}
     </tbody>
-</table>
+  </table>
+</div>
 {% endblock %}
