@@ -22,6 +22,43 @@ class CustomerForm(forms.ModelForm):
             'credit_level',
             'cumulative_amount'
         ]
+class ProfileUpdateForm(forms.Form):
+    """
+    编辑个人信息（地址 + 邮箱）
+    """
+    email = forms.EmailField(label='邮箱', required=False)
+    address = forms.CharField(label='地址', required=False, max_length=255)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # 用于保存时识别是谁
+        super().__init__(*args, **kwargs)
+
+        if self.user:
+            # 初始值
+            self.fields['email'].initial = self.user.email
+            # 在Customers里查找
+            try:
+                cust = Customers.objects.get(name=self.user.username)
+                self.fields['address'].initial = cust.address
+            except Customers.DoesNotExist:
+                pass
+
+    def save(self):
+        if not self.user:
+            return
+        # 更新User.email
+        email_val = self.cleaned_data['email']
+        self.user.email = email_val
+        self.user.save()
+
+        # 更新Customers.address
+        address_val = self.cleaned_data['address']
+        try:
+            cust = Customers.objects.get(name=self.user.username)
+            cust.address = address_val
+            cust.save()
+        except Customers.DoesNotExist:
+            pass
 class RegisterForm(forms.ModelForm):
     """
     用户注册表单:
@@ -34,7 +71,7 @@ class RegisterForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email']  # 用户名, 邮箱
+        fields = ['username', 'email' ]  # 用户名, 邮箱
 
     def clean(self):
         cleaned_data = super().clean()

@@ -1,14 +1,36 @@
 {% extends 'base.html' %}
 {% block title %}书目列表{% endblock %}
+
 {% block content %}
 <div class="bg-white p-6 shadow rounded">
+  <!-- 搜索栏与“添加新书”按钮位于同一行，可用 flex 布局 -->
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-xl font-semibold">书目列表</h2>
-    <a href="{% url 'book_create' %}"
-       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-      添加新书
-    </a>
+    <div class="flex items-center space-x-3">
+      <!-- 搜索表单 -->
+      <form method="GET" action="">
+        <input
+          type="text" name="q" placeholder="关键字"
+          value="{{ query|default_if_none:'' }}"
+          class="border px-2 py-1 rounded"
+        />
+        <button
+          type="submit"
+          class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700"
+        >
+          搜索
+        </button>
+      </form>
+      <!-- 添加新书按钮（只有管理员才应可见, 你也可加条件 if request.user.is_staff ...） -->
+      <a
+        href="{% url 'book_create' %}"
+        class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+      >
+        添加新书
+      </a>
+    </div>
   </div>
+
   <table class="min-w-full border text-gray-600">
     <thead class="bg-gray-50 border-b">
       <tr>
@@ -16,6 +38,8 @@
         <th class="py-2 px-3 text-left">书名</th>
         <th class="py-2 px-3 text-left">作者</th>
         <th class="py-2 px-3 text-left">出版社</th>
+        <!-- 新增“价格”列 -->
+        <th class="py-2 px-3 text-left">价格</th>
         <th class="py-2 px-3 text-left">库存</th>
         <th class="py-2 px-3">操作</th>
       </tr>
@@ -31,10 +55,16 @@
           {% if b.author3rd %}/{{ b.author3rd }}{% endif %}
         </td>
         <td class="py-2 px-3">{{ b.publisher }}</td>
+        <!-- 新增“价格”单元格 -->
+        <td class="py-2 px-3">{{ b.price }}</td>
         <td class="py-2 px-3">{{ b.stock_quantity }}</td>
         <td class="py-2 px-3 text-center">
-          <a href="{% url 'book_edit' b.book_id %}"
-             class="text-indigo-600 hover:text-indigo-800">编辑</a>
+          <a
+            href="{% url 'book_edit' b.book_id %}"
+            class="text-indigo-600 hover:text-indigo-800"
+          >
+            编辑
+          </a>
         </td>
       </tr>
       {% endfor %}

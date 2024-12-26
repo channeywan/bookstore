@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}编辑个人信息{% endblock %}
+{% block content %}
+<div class="bg-white p-6 shadow rounded max-w-xl">
+  <h2 class="text-xl font-semibold mb-4">编辑个人信息</h2>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 mt-4">保存</button>
+  </form>
+</div>
+{% endblock %}

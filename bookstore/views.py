@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from datetime import date
 
 from .models import Books, Suppliers, Backorders, Purchaseorders, Customers, Orders, Orderdetails
-from .forms import BookForm, RegisterForm, CustomerForm
+from .forms import BookForm, RegisterForm, CustomerForm,ProfileUpdateForm
 
 
 def index(request):
@@ -77,9 +77,17 @@ def book_list(request):
     """
     查看所有书目 (任意登录/未登录用户都可访问? 如果要限制“必须登录”可加@login_required)
     """
-    books = Books.objects.all()
-    return render(request, 'books/book_list.html', {'books': books})
+    query = request.GET.get('q', '')  # 从GET中取搜索关键字
+    if query:
+        # 这里以 title 模糊查询为例，也可加 publisher 等
+        books = Books.objects.filter(title__icontains=query)
+    else:
+        books = Books.objects.all()
 
+    return render(request, 'books/book_list.html', {
+        'books': books,
+        'query': query,
+    })
 
 @login_required
 def book_create(request):
@@ -238,6 +246,19 @@ def customer_edit(request, pk):
 
     return render(request, 'customers/customer_edit.html', {'form': form, 'customer_id': pk})
 
+@login_required
+def profile_update(request):
+    """
+    用户管理自己的邮箱、地址
+    """
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('index')  # 或跳回个人中心
+    else:
+        form = ProfileUpdateForm(user=request.user)
+    return render(request, 'customers/profile_update.html', {'form': form})
 
 
 # ------------------------------
@@ -260,40 +281,52 @@ def order_list(request):
 
 @login_required
 def order_create(request):
-    """
-    顾客(登录用户)下单：可一次订多本书
-    (若你想让只有普通用户下单, 而管理员不下单, 也可; 此处未做 staff 检查)
-    """
     if request.method == 'POST':
-        customer_id = request.POST.get('customer_id')
-        shipping_addr = request.POST.get('shipping_address')
+        # 不再从表单取 'customer_id'
+        try:
+            cust = Customers.objects.get(name=request.user.username)
+        except Customers.DoesNotExist:
+            # 如果当前用户在Customers里没有记录
+            return HttpResponse("您没有客户信息，无法下单", status=400)
+
+        shipping_addr = request.POST.get('shipping_address', '')
         book_id = request.POST.get('book_id')
         quantity = int(request.POST.get('quantity', '1'))
 
+        # 创建 Orders，强制customer_id为当前登录用户的 Customers对象
         new_order = Orders.objects.create(
-            customer_id_id=customer_id,
+            customer_id=cust,
             order_date=date.today(),
             shipping_address=shipping_addr,
             order_status='unpayed'
         )
 
+        # 继续创建 Orderdetails
         book_obj = Books.objects.get(pk=book_id)
         detail_price = book_obj.price
         Orderdetails.objects.create(
-            order_id=new_order,
-            book_id=book_obj,
+            order=new_order,  # 不能写 order_id=new_order
+            book=book_obj,    # 同理
             quantity=quantity,
             price=detail_price
         )
 
         return redirect('order_list')
 
-    customers = Customers.objects.all()  # 或只让当前用户下单
+    # GET 请求，显示下单表单
+    # 不再让用户选择 customer_id
+    try:
+        cust = Customers.objects.get(name=request.user.username)
+        user_balance = cust.account_balance
+    except Customers.DoesNotExist:
+        user_balance = 0
+
     books = Books.objects.all()
     return render(request, 'orders/order_create.html', {
-        'customers': customers,
         'books': books,
+        'user_balance': user_balance,  # 传用户余额给模板
     })
+
 
 
 @login_required
