@@ -147,7 +147,7 @@ class Orders(models.Model):
 
 
 class Orderdetails(models.Model):
-    id = models.AutoField(primary_key=True)  # Django主键
+    id = models.AutoField(db_column='OrderDetailsID',primary_key=True)  # Django主键
 
     order = models.ForeignKey(Orders, models.DO_NOTHING, db_column='OrderID')
     book = models.ForeignKey(Books, models.DO_NOTHING, db_column='BookID')

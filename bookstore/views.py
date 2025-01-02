@@ -166,24 +166,15 @@ def backorder_create(request):
         supplier_id = request.POST.get('supplier_id')
         quantity = int(request.POST.get('quantity', '1'))
         book_obj = get_object_or_404(Books, pk=book_id)
-        with transaction.atomic():
-            try:
-                existing_bo = Backorders.objects.get(book_id=book_id)
-                existing_bo.quantity += quantity
-                existing_bo.registration_date = date.today()
-                existing_bo.save()
-                messages.success(request, f'已更新书籍 "{book_obj.title}" 的缺货数量至 {existing_bo.quantity}。')
-            except Backorders.DoesNotExist:
-                bo = Backorders.objects.create(
-                    book_id_id = book_id,
-                    title = book_obj.title,
-                    publisher = book_obj.publisher,
-                    supplier_id_id = supplier_id,
-                    quantity = quantity,
-                    registration_date = date.today(),
-                )
-                bo.save()
-                messages.success(request, f'已为书籍 "{book_obj.title}" 创建新的缺货记录。')
+        bo = Backorders.objects.create(
+            book_id_id = book_id,
+            title = book_obj.title,
+            publisher = book_obj.publisher,
+            supplier_id_id = supplier_id,
+            quantity = quantity,
+            registration_date = date.today(),
+        )
+        bo.save()
         return redirect('backorder_list')
 
     suppliers = Suppliers.objects.all()
@@ -352,17 +343,25 @@ def order_detail(request, pk):
     显示订单详情：包含 Order + Orderdetails
     """
     order = get_object_or_404(Orders, pk=pk)
-    # 若你想限制：只有订单所有者或管理员才能看
-    if not request.user.is_staff:
-        cust = Customers.objects.get(name=request.user.username)
-        if order.customer_id_id != cust.customer_id:
-            return HttpResponse("无权限查看此订单", status=403)
-
     details = Orderdetails.objects.filter(order=order)
-    return render(request, 'orders/order_detail.html', {
+
+    # 计算每个订单明细的小计
+    details_with_subtotal = []
+    for detail in details:
+        subtotal = detail.quantity * detail.price
+        details_with_subtotal.append({
+            'book_id': detail.book.book_id,
+            'title': detail.book.title,
+            'price': detail.price,
+            'quantity': detail.quantity,
+            'subtotal': subtotal,
+        })
+
+    context = {
         'order': order,
-        'details': details,
-    })
+        'details': details_with_subtotal,
+    }
+    return render(request, 'orders/order_detail.html', context)
 
 @login_required
 def order_delete(request, pk):

@@ -1,3 +1,4 @@
+<!-- bookstore/templates/orders/order_detail.html -->
 {% extends 'base.html' %}
 {% block title %}订单详情{% endblock %}
 {% block content %}
@@ -24,14 +25,11 @@
     <tbody>
       {% for d in details %}
       <tr class="border-b">
-        <td>{{ d.book.book_id }}</td>
-        <td>{{ d.book.title }}</td>
+        <td>{{ d.book_id }}</td>
+        <td>{{ d.title }}</td>
         <td>{{ d.price }}</td>
         <td>{{ d.quantity }}</td>
-        <td>{{ d.quantity|multiply:d.price }}</td>
-        <!--  multiply是自定义模板过滤器或者 you can do manually
-             but you may require 'floatformat', 'decimal' etc.
-        -->
+        <td>{{ d.subtotal }}</td>
       </tr>
       {% endfor %}
     </tbody>
