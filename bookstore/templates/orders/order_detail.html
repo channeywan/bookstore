@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}订单详情{% endblock %}
+{% block content %}
+<div class="bg-white p-6 shadow rounded max-w-2xl">
+  <h2 class="text-xl font-semibold mb-4">订单 #{{ order.order_id }} 详情</h2>
+  <p>客户：{{ order.customer_id.name }}</p>
+  <p>日期：{{ order.order_date }}</p>
+  <p>金额：{{ order.total_amount }}</p>
+  <p>发货地址：{{ order.shipping_address }}</p>
+  <p>状态：{{ order.order_status }}</p>
+
+  <hr class="my-4" />
+  <h3 class="text-lg font-semibold mb-2">订单明细</h3>
+  <table class="min-w-full border text-gray-600">
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        <th>书ID</th>
+        <th>标题</th>
+        <th>单价</th>
+        <th>数量</th>
+        <th>小计</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in details %}
+      <tr class="border-b">
+        <td>{{ d.book.book_id }}</td>
+        <td>{{ d.book.title }}</td>
+        <td>{{ d.price }}</td>
+        <td>{{ d.quantity }}</td>
+        <td>{{ d.quantity|multiply:d.price }}</td>
+        <!--  multiply是自定义模板过滤器或者 you can do manually
+             but you may require 'floatformat', 'decimal' etc.
+        -->
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

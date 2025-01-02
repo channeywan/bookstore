@@ -1,11 +1,11 @@
 from django.urls import path
 from .views import (
     index, book_list, book_create, book_edit,
-    register_view,login_view,logout_view,
+    register_view, login_view, logout_view,
     backorder_list, backorder_create,
-    purchase_list, purchase_create, purchase_arrival,
-    customer_list, customer_edit,profile_update,customer_delete,
-    order_list, order_create, order_pay
+    purchase_list, purchase_arrival,
+    customer_list, customer_edit, profile_update, customer_delete,
+    order_list, order_create, order_pay, order_detail, order_delete, purchase_bulk_create
 )
 
 urlpatterns = [
@@ -25,9 +25,8 @@ urlpatterns = [
 
     # 采购单
     path('purchase/', purchase_list, name='purchase_list'),
-    path('purchase/<int:backorder_id>/', purchase_create, name='purchase_create'),
     path('purchase/<int:pk>/arrival/', purchase_arrival, name='purchase_arrival'),
-
+    path('purchase/bulk_create/', purchase_bulk_create, name='purchase_bulk_create'),
     # 客户
     path('customers/', customer_list, name='customer_list'),
     path('customers/<int:pk>/edit/', customer_edit, name='customer_edit'),
@@ -37,4 +36,6 @@ urlpatterns = [
     path('orders/', order_list, name='order_list'),
     path('orders/new/', order_create, name='order_create'),
     path('orders/<int:pk>/pay/', order_pay, name='order_pay'),
+    path('orders/<int:pk>/detail/', order_detail, name='order_detail'),
+    path('orders/<int:pk>/delete/', order_delete, name='order_delete'),
 ]

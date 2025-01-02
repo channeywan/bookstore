@@ -28,7 +28,7 @@ class ProfileUpdateForm(forms.Form):
     """
     email = forms.EmailField(label='邮箱', required=False)
     address = forms.CharField(label='地址', required=False, max_length=255)
-
+    account_balance = forms.DecimalField(label='账户余额', required=False, disabled=True,decimal_places=2)
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)  # 用于保存时识别是谁
         super().__init__(*args, **kwargs)
@@ -40,6 +40,7 @@ class ProfileUpdateForm(forms.Form):
             try:
                 cust = Customers.objects.get(name=self.user.username)
                 self.fields['address'].initial = cust.address
+                self.fields['account_balance'].initial = cust.account_balance
             except Customers.DoesNotExist:
                 pass
 
@@ -68,7 +69,7 @@ class RegisterForm(forms.ModelForm):
     """
     password = forms.CharField(label='密码', widget=forms.PasswordInput)
     password2 = forms.CharField(label='确认密码', widget=forms.PasswordInput)
-
+    address = forms.CharField(label='地址', max_length=255, required=True)
     class Meta:
         model = User
         fields = ['username', 'email' ]  # 用户名, 邮箱

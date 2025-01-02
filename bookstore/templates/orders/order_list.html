@@ -41,6 +41,18 @@
           {% else %}
           已支付
           {% endif %}
+          <td class="py-2 px-3 space-x-2 text-center">
+          <!-- 查看详情 -->
+          <a href="{% url 'order_detail' o.order_id %}"
+             class="text-blue-600 hover:text-blue-800">
+            详情
+          </a>
+          <!-- 删除链接 -->
+          <a href="{% url 'order_delete' o.order_id %}"
+             class="text-red-600 hover:text-red-800"
+             onclick="return confirm('确认删除该订单吗？');">
+            删除
+          </a>
         </td>
       </tr>
       {% endfor %}

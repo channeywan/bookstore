@@ -1,9 +1,20 @@
-<!-- bookstore/templates/purchase/purchase_list.html -->
 {% extends 'base.html' %}
 {% block title %}采购单列表{% endblock %}
 {% block content %}
 <div class="bg-white p-6 shadow rounded">
-  <h2 class="text-xl font-semibold mb-4">采购单列表</h2>
+
+  <!-- 标题 + 按钮行 -->
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-semibold">采购单列表</h2>
+    {% if user.is_staff %}
+    <a href="{% url 'purchase_bulk_create' %}"
+       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+      一键生成采购单
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- 采购单列表表格 -->
   <table class="min-w-full border text-gray-600">
     <thead class="bg-gray-50 border-b">
       <tr>

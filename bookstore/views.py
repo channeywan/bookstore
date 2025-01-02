@@ -1,3 +1,7 @@
+from decimal import Decimal
+
+from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth import login, authenticate, logout
@@ -26,6 +30,7 @@ def register_view(request):
             # 1) 创建Django User
             user = form.save(commit=False)
             password = form.cleaned_data['password']
+            address = form.cleaned_data['address']
             user.set_password(password)  # 加密存储
             user.save()
 
@@ -34,7 +39,7 @@ def register_view(request):
             Customers.objects.create(
                 name=user.username,
                 password=user.password,  # 仅占位
-                address='',
+                address=address,
             )
 
             # 3) 自动登录(可选)
@@ -75,19 +80,32 @@ def logout_view(request):
 
 def book_list(request):
     """
-    查看所有书目 (任意登录/未登录用户都可访问? 如果要限制“必须登录”可加@login_required)
+    查看所有书目 (任意登录/未登录用户都可访问)
     """
-    query = request.GET.get('q', '')  # 从GET中取搜索关键字
-    if query:
-        # 这里以 title 模糊查询为例，也可加 publisher 等
-        books = Books.objects.filter(title__icontains=query)
-    else:
-        books = Books.objects.all()
+    query = request.GET.get('q', '').strip()
+    field = request.GET.get('field', 'title')  # 默认按书名搜索
 
-    return render(request, 'books/book_list.html', {
+    # 定义允许的搜索字段
+    allowed_fields = ['title', 'author', 'publisher']
+
+    if field not in allowed_fields:
+        field = 'title'  # 如果传入的field不合法，默认按书名搜索
+
+    books = Books.objects.all()
+
+    if query:
+        # 动态构造过滤条件
+        filter_kwargs = {f"{field}__icontains": query}
+        books = books.filter(**filter_kwargs)
+
+    context = {
         'books': books,
         'query': query,
-    })
+        'field': field,
+        'allowed_fields': allowed_fields,
+    }
+
+    return render(request, 'books/book_list.html', context)
 
 @login_required
 def book_create(request):
@@ -134,7 +152,7 @@ def backorder_list(request):
     """
     列出所有缺书记录(可让所有已登录用户查看, 也可仅登录可查看)
     """
-    backorders = Backorders.objects.all()
+    backorders = Backorders.objects.exclude(purchaseorders__status='Arrival')
     return render(request, 'backorders/backorder_list.html', {'backorders': backorders})
 
 
@@ -147,16 +165,25 @@ def backorder_create(request):
         book_id = request.POST.get('book_id')
         supplier_id = request.POST.get('supplier_id')
         quantity = int(request.POST.get('quantity', '1'))
-
-        bo = Backorders.objects.create(
-            book_id_id = book_id,
-            title = '临时标题',
-            publisher = '临时出版社',
-            supplier_id_id = supplier_id,
-            quantity = quantity,
-            registration_date = date.today(),
-        )
-        bo.save()
+        book_obj = get_object_or_404(Books, pk=book_id)
+        with transaction.atomic():
+            try:
+                existing_bo = Backorders.objects.get(book_id=book_id)
+                existing_bo.quantity += quantity
+                existing_bo.registration_date = date.today()
+                existing_bo.save()
+                messages.success(request, f'已更新书籍 "{book_obj.title}" 的缺货数量至 {existing_bo.quantity}。')
+            except Backorders.DoesNotExist:
+                bo = Backorders.objects.create(
+                    book_id_id = book_id,
+                    title = book_obj.title,
+                    publisher = book_obj.publisher,
+                    supplier_id_id = supplier_id,
+                    quantity = quantity,
+                    registration_date = date.today(),
+                )
+                bo.save()
+                messages.success(request, f'已为书籍 "{book_obj.title}" 创建新的缺货记录。')
         return redirect('backorder_list')
 
     suppliers = Suppliers.objects.all()
@@ -183,20 +210,26 @@ def purchase_list(request):
     return render(request, 'purchase/purchase_list.html', {'purchases': purchases})
 
 @login_required
-def purchase_create(request, backorder_id):
+def purchase_bulk_create(request):
     """
-    根据缺书记录生成采购单 - 仅管理员可访问
+    一键生成采购单: 管理员可复制所有Backorders到Purchaseorders
     """
     if not request.user.is_staff:
-        return HttpResponse("无权限访问该页面，仅管理员可操作。", status=403)
+        return HttpResponse("无权限执行此操作", status=403)
 
-    bo = get_object_or_404(Backorders, pk=backorder_id)
-    Purchaseorders.objects.create(
-        backorder_id=bo,
-        order_date=date.today(),
-        status='Pending'
-    )
+    from datetime import date
+    backorders = Backorders.objects.all()
+    for bo in backorders:
+        # 如果想避免重复，则先检查 Purchaseorders 是否已存在
+        if not Purchaseorders.objects.filter(backorder_id=bo).exists():
+            Purchaseorders.objects.create(
+                backorder_id=bo,
+                order_date=date.today(),
+                status='Pending'
+            )
+
     return redirect('purchase_list')
+
 
 @login_required
 def purchase_arrival(request, pk):
@@ -209,12 +242,13 @@ def purchase_arrival(request, pk):
     purchase = get_object_or_404(Purchaseorders, pk=pk)
     purchase.status = 'Arrival'
     purchase.save()
+    bo = purchase.backorder_id
+    book = bo.book_id
+    book.stock_quantity += bo.quantity
+    book.save()
     return redirect('purchase_list')
 
 
-# ------------------------------
-# 客户管理 - 仅管理员可访问
-# ------------------------------
 
 @login_required
 def customer_list(request):
@@ -296,16 +330,57 @@ def profile_update(request):
 @login_required
 def order_list(request):
     """
-    列出当前登录用户的订单 (普通用户只能查看自己的订单; 管理员也只能查看以自己username对应的客户？)
+    列出当前登录用户的订单 (普通用户只能查看自己的; 管理员看全部)
     """
-    username = request.user.username
-    try:
-        cust = Customers.objects.get(name=username)
-    except Customers.DoesNotExist:
-        return render(request, 'orders/order_list.html', {'orders': []})
-
-    orders = Orders.objects.filter(customer_id=cust)
+    if request.user.is_staff:
+        # 如果是管理员 => 查询所有订单
+        orders = Orders.objects.all()
+    else:
+        # 普通用户 => 只看自己的
+        try:
+            cust = Customers.objects.get(name=request.user.username)
+            orders = Orders.objects.filter(customer_id=cust)
+        except Customers.DoesNotExist:
+            orders = []
     return render(request, 'orders/order_list.html', {'orders': orders})
+
+
+# views.py
+@login_required
+def order_detail(request, pk):
+    """
+    显示订单详情：包含 Order + Orderdetails
+    """
+    order = get_object_or_404(Orders, pk=pk)
+    # 若你想限制：只有订单所有者或管理员才能看
+    if not request.user.is_staff:
+        cust = Customers.objects.get(name=request.user.username)
+        if order.customer_id_id != cust.customer_id:
+            return HttpResponse("无权限查看此订单", status=403)
+
+    details = Orderdetails.objects.filter(order=order)
+    return render(request, 'orders/order_detail.html', {
+        'order': order,
+        'details': details,
+    })
+
+@login_required
+def order_delete(request, pk):
+    """
+    删除订单 - 如果是管理员, 或订单所属人(未支付? 看你的需求)
+    """
+    order = get_object_or_404(Orders, pk=pk)
+
+    # 校验权限：管理员 or 本人
+    if not request.user.is_staff:
+        cust = Customers.objects.get(name=request.user.username)
+        if order.customer_id_id != cust.customer_id:
+            return HttpResponse("无权限删除此订单", status=403)
+
+    # 可能还要判断 order_status != 'payed' 才能删除, 看你业务需求
+    order.delete()
+    return redirect('order_list')
+
 
 @login_required
 def order_create(request):
@@ -345,13 +420,16 @@ def order_create(request):
     # 不再让用户选择 customer_id
     try:
         cust = Customers.objects.get(name=request.user.username)
+        default_address = cust.address
         user_balance = cust.account_balance
     except Customers.DoesNotExist:
         user_balance = 0
+        default_address = ''
 
     books = Books.objects.all()
     return render(request, 'orders/order_create.html', {
         'books': books,
+        'default_address': default_address,
         'user_balance': user_balance,  # 传用户余额给模板
     })
 
@@ -359,21 +437,65 @@ def order_create(request):
 
 @login_required
 def order_pay(request, pk):
-    """
-    模拟顾客支付订单 -> 触发器 PayedOrder
-    """
     order = get_object_or_404(Orders, pk=pk)
-    # 如果你想限制: 只有订单所属人 or 管理员 才能支付:
-    username = request.user.username
-    cust = None
-    try:
-        cust = Customers.objects.get(name=username)
-    except Customers.DoesNotExist:
-        pass
+    # 检查当前用户是否=该订单所有者 or is_staff
+    # ...
+    # 先拿到订单金额
+    base_amount = order.total_amount  # 订单原价
 
-    if cust and order.customer_id_id != cust.customer_id and not request.user.is_staff:
-        return HttpResponse("无权限支付该订单", status=403)
+    # 找到Customers
+    cust = Customers.objects.get(name=request.user.username)
+    credit_level = cust.credit_level
+    # 确定折扣 & 是否允许透支
+    # level 1 => 10%折扣, 不可透支
+    # level 2 => 15%折扣, 不可透支
+    # level 3 => 15%折扣, 可先发书再付款, 透支有限
+    # ...
+    discount_map = {
+        1: Decimal('0.10'),
+        2: Decimal('0.15'),
+        3: Decimal('0.15'),
+        4: Decimal('0.20'),
+        5: Decimal('0.25'),
+    }
+    discount_rate = discount_map.get(credit_level, Decimal('0'))
+    pay_amount = base_amount * (Decimal('1') - discount_rate)
 
+    # 根据级别确定“是否可透支”与“额度”
+    # 仅示例，具体透支额度你可存 Customers 表或写死
+    can_overdraft = (credit_level >= 3)
+    overdraft_limit = 50  # 比如: 3级用户透支上限 50元,4级100,5级无限
+    if credit_level == 3:
+        overdraft_limit = 50
+    elif credit_level == 4:
+        overdraft_limit = 100
+    elif credit_level == 5:
+        overdraft_limit = 99999999  # practically unlimited
+
+    # 计算“可用资金” = 余额 + (可透支？=> overdraft_limit : 0)
+    available_funds = cust.account_balance + (overdraft_limit if can_overdraft else 0)
+
+    if pay_amount > available_funds:
+        # 余额不足
+        return HttpResponse("支付失败：余额或透支额度不足。")
+
+    # 如果够，就扣钱
+    # 优先用余额
+    cust.cumulative_amount +=pay_amount
+    cost_from_balance = min(cust.account_balance, pay_amount)
+    cust.account_balance -= cost_from_balance
+    # 如果还剩 amt = pay_amount - cost_from_balance
+    # 就表示进入透支
+    leftover = pay_amount - cost_from_balance
+    # 这 leftover 不一定要存, 具体透支如何记账看你业务需求
+    # 这里只是演示
+
+    # 扣完余额后，更新订单状态
     order.order_status = 'payed'
     order.save()
+    cust.save()
+
+    # 触发器 PayedOrder 也会更新库存 & 累计消费
     return redirect('order_list')
+
+

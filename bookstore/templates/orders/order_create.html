@@ -8,13 +8,13 @@
     <!-- 不显示 customer_id, 由服务器决定 -->
     <div class="mb-4">
       <label class="block mb-2 font-medium">发货地址</label>
-      <input type="text" name="shipping_address" class="border-gray-300 rounded w-full" required>
+      <input type="text" name="shipping_address" value="{{ default_address|default_if_none:'' }}" class="border-gray-300 rounded w-full" required>
     </div>
     <div class="mb-4">
       <label class="block mb-2 font-medium">选择图书</label>
       <select name="book_id" class="border-gray-300 rounded w-full">
         {% for b in books %}
-        <option value="{{ b.book_id }}">{{ b.title }} (库存: {{ b.stock_quantity }})</option>
+        <option value="{{ b.book_id }}">{{ b.title }} </option>
         {% endfor %}
       </select>
     </div>
